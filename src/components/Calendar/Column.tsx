@@ -7,9 +7,9 @@ import {
   Stack,
   useColorModeValue,
 } from '@chakra-ui/react';
-import useColumnDrop from '../hooks/useColumnDrop';
-import useColumnTasks from '../hooks/useColumnTasks';
-import { ColumnType } from '../utils/enums';
+import useColumnDrop from '../../hooks/useColumnDrop';
+import useColumnTasks from '../../hooks/useColumnTasks';
+import { ColumnType } from '../../utils/enums';
 import Task from './Task';
 
 const ColumnColorScheme: Record<ColumnType, string> = {

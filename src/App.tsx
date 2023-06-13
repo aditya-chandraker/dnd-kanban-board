@@ -1,26 +1,31 @@
 import Calendar from './pages/Calendar';
-import BetaPage from './pages/BetaPage';
+import BetaPage from './pages/Beta';
 import Root from './pages/Root';
+import Feed from './pages/Feed';
+
 import {
   createBrowserRouter,
   createRoutesFromElements,
   Route,
   RouterProvider,
 } from 'react-router-dom';
+import React from 'react';
 
 export default function App() {
-  const startDate = new Date();
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route element={<Root />}>
-        <Route path='/'>
-          <Route index element={<BetaPage />} />
-          <Route path='calendar' element={<Calendar startDate={startDate} />} />
-        </Route>
+      <Route path="/" element={<Root />}>
+        <Route path='calendar' element={<Calendar />} />
+        <Route path='beta' element={<BetaPage />} />
+        <Route path='feed' element={<Feed />} />
       </Route>
     )
   );
 
 
-  return <Calendar startDate={startDate} />;
+  return (
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
+  );
 }
