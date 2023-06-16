@@ -3,6 +3,8 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Column from '../components/Calendar/Column';
 import { ColumnType } from '../utils/enums';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type CalendarProps = {
   startDate: Date;
@@ -31,12 +33,22 @@ const getColumns = () => {
 };
 
 function Calendar() {
+  const navigate = useNavigate();
+
+  // use this function to get the session information
+  const location = useLocation();
+
+  // changes the title of page to Calendar
+  useEffect(() => {
+    document.title = 'Calendar';
+  }, []);
+
   const columns = getColumns();
   return (
     <main>
       <DndProvider backend={HTML5Backend}>
-        <Container maxWidth="container.lg" px={4} py={10}>
-          <SimpleGrid columns={{ base: 1, md: 7 }} spacing={{ base: 16, md: 2 }}>
+        <Container maxWidth="container.lg" px={4} py={6}>
+          <SimpleGrid columns={{ base: 1, md: 7 }} spacing={{ base: 16, md: 2 }} pt={10}>
             {columns}
           </SimpleGrid>
         </Container>

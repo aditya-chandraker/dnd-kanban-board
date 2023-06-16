@@ -70,10 +70,10 @@ function Task({
         role="group"
         position="relative"
         rounded="lg"
-        w={118}
-        pl={3}
+        w={126}
+        pl={2}
         pr={7}
-        pt={3}
+        pt={2}
         pb={1}
         boxShadow="xl"
         cursor="grab"
@@ -117,10 +117,10 @@ function Task({
         <AutoResizeTextarea
           value={task.title}
           fontWeight="semibold"
-          cursor="inherit"
+          //cursor="inherit"
           border="none"
           p={0}
-          fontSize="xs"
+          fontSize="10px"
           overflow="hidden"
           resize="none"
           minH={10}
