@@ -1,26 +1,33 @@
-import { useState } from 'react';
-import { Text, Center, Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, FormControl, InputRightElement, useColorMode, useToast, Spinner } from '@chakra-ui/react';
+import { FormEvent, useState } from 'react';
+import { Text, Center, Flex, Image, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, FormControl, InputRightElement, useColorMode, useToast, Spinner } from '@chakra-ui/react';
 import { FcGoogle } from 'react-icons/fc';
-import { FaLock } from 'react-icons/fa';
+import { FaLock, FaUserAlt } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../supabase';
+import Canvas from '../components/Beta/Canvas';
+import { AtSignIcon } from '@chakra-ui/icons';
 
 const CFaLock = chakra(FaLock);
 
 export default function SignUpPage() {
+
+    // navigates to check your email
     const navigate = useNavigate();
+
     const { colorMode } = useColorMode();
+
+    // login stuff
     const [showPassword, setShowPassword] = useState(false);
-    const [userName, setUserName] = useState('');
     const toast = useToast();
-    const [profile, setProfile] = useState({
-        name: '',
-        biography: '',
-        userid: null,
-    });
-    const [username, setUsername] = useState({
-        username: '',
-        userid: null,
-    });
+
+    //Check for an existing userName
+    //Pass the email and password into Supabase Signup Method
+    //-- Display any issues with sign up to the user
+    //(Must check that account has been made) Insert username and other data into profiles table
+    // Supabase
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+
     const [isLoading, setIsLoading] = useState(false); //for login loading
     const loading = () => {
         setIsLoading(true);
@@ -29,207 +36,36 @@ export default function SignUpPage() {
 
     const handleShowClick = () => setShowPassword(!showPassword);
 
-    //Check for an existing userName
-    //Pass the email and password into Supabase Signup Method
-    //-- Display any issues with sign up to the user
-    //(Must check that account has been made) Insert username and other data into profiles table
-
-    // Supabase
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [repeatPassword, setRepeatPassword] = useState('')
-    const [username, setUsername] = useState('')
-
-    // React Router
-    const navigate = useNavigate()
-
-    // ChakraUI
-    const toast = useToast()
-    const [isEmailError, setIsEmailError] = useState(false)
-    const [isPasswordError, setIsPasswordError] = useState(false)
-    const [isRepeatPasswordError, setIsRepeatPasswordError] = useState(false)
-    const [isUsernameError, setIsUsernameError] = useState(false)
-
-
-    const SignUp = async function () {
-
-        // Closes all previous opened toasts (makes spam clicking submit be less annoying)
-        toast.closeAll()
-
-        // Check if any fields are empty
-        if (email === "" || password === "" || username === "") {
-            toast({
-                title: "Please fill in all required fields",
-                position: 'bottom',
-                status: 'error',
-                duration: 5000,
-                isClosable: false,
-            })
-            return
-        }
-
-        // @ and '.' symbols in email
-        if (!email.includes('.') || !email.includes('@')) {
-            setIsEmailError(true)
-            return
-        }
-        // 8 char minimum password
-        if (password.length < 8) {
-            setIsPasswordError(true)
-            setIsRepeatPasswordError(false)
-            return
-        }
-        // matching passwords
-        if (repeatPassword !== password) {
-            setIsRepeatPasswordError(true)
-            return
-        }
-        // username requirements
-        if (username.length < 3 || username.length > 12 || !/^[a-z0-9]+$/.test(username)) {
-            setIsUsernameError(true)
-            return
-        }
-
-        // Check if email is already taken
-        const { data: userProfileEmail, error: userProfileEmailError } = await supabase
-            .from('user_profile')
-            .select('auth_id')
-            .eq('email', email)
-
-        // Check if username is already taken
-        const { data: userProfileId, error: userProfileIdError } = await supabase
-            .from('user_profile')
-            .select('auth_id')
-            .eq('username', username)
-
-        if (userProfileEmailError || userProfileIdError) {
-            console.log("Error email data")
-            console.log(userProfileEmailError)
-            console.log("Error id data")
-            console.log(userProfileIdError)
-            return
-        }
-
-        if (userProfileEmail.length > 0 && userProfileEmail[0].auth_id != null) {
-            toast({
-                title: "Email is already taken",
-                position: 'bottom',
-                status: 'error',
-                duration: 5000,
-                isClosable: false,
-            })
-            return
-        }
-
-        if (userProfileId.length > 0 && userProfileId[0].auth_id != null) {
-            toast({
-                title: "Username is already taken",
-                position: 'bottom',
-                status: 'error',
-                duration: 5000,
-                isClosable: false,
-            })
-            return
-        }
+    const handleSubmit = async (event: { preventDefault: () => void; }) => {
+        event.preventDefault();
+        console.log('submitting signup!');
 
         try {
-            // Sign up the user
-            const { user, error } = await supabase.auth.signUp({
-                email,
-                password,
-            })
-
+            // sign up
+            const { data, error } = await supabase.auth.signUp({ email, password });
             if (error) {
-                console.log("Error signing up")
-                console.log(user)
-                console.log(error)
-                return
+                throw error;
             }
 
-            // Insert the user's profile data into the user_profile table
-            const { data: userProfileInsertData, error: userProfileInsertError } = await supabase
-                .from('user_profile')
-                .insert({
-                    username: username,
-                    email: email,
-                })
-
-            console.log(userProfileInsertData)
-            console.log(userProfileInsertError)
-
-            // toast({
-            //     title: "Check your email for verification",
-            //     position: 'bottom',
-            //     status: 'success',
-            //     duration: 3000,
-            //     isClosable: false,
-            // })
-            navigate('/checkverification')
-
-            if (userProfileInsertError) {
-                console.log(userProfileInsertError)
-                return
+            //Insert username and other data into profiles table
+            const { error: insertError } = await supabase.from('profiles').update([{ userid: data?.user?.id }]);
+            if (insertError) {
+                throw insertError;
             }
 
-            // if (userProfileInsertData) {
-            //     // navigate('/', { state: { session: user.session } })
-            // }
+            //Navigate to check your email page
+            navigate('/checkyouremail');
+
+
         } catch (err) {
-            toast({
-                title: err.message,
-                position: 'bottom',
-                status: 'error',
-                duration: 3000,
-                isClosable: false,
-            })
-            console.log(err)
-        }
-    }
-
-
-    const isValidUserName = async event => {
-        //Throw a toast if username is too long or too short
-        if (userName.length < 8 && userName.length > 20) {
-            toast({
-                title: 'Authentication Error',
-                description: 'Username must be between 8 and 20 characters',
+            return toast({
+                title: 'You may already have an account',
+                description: "Check your email for verification (might be under spam)",//(err as Error).message,
                 status: 'error',
                 duration: 5000,
                 isClosable: true,
             });
-            return false;
         }
-
-        //Throw a toast if username does not pass char checks
-        if (!/^[A-Za-z0-9]*$/.test(userName)) {
-            toast({
-                title: 'Authentication Error',
-                description: 'Usernames can only contain alphanumeric characters',
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
-            return false;
-        }
-
-        //Throw a toast if username already exists
-        let { data, err } = await supabase
-            .from('usernames')
-            .select()
-            .eq('username', userName);
-        console.log('userNameQuery returns: ', data);
-
-        if (data.length > 0) {
-            toast({
-                title: 'Authentication Error',
-                description: 'This username is already taken',
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
-            return false;
-        }
-        return true;
     };
 
     return (
@@ -239,6 +75,7 @@ export default function SignUpPage() {
             height='100vh'
             justifyContent='center'
             alignItems='center'
+            color="white"
         >
             <Stack
                 flexDir='column'
@@ -246,44 +83,23 @@ export default function SignUpPage() {
                 justifyContent='center'
                 alignItems='center'
             >
-                <Heading
-                    fontWeight='extrabold'
-                    bgGradient='linear(to-l, teal.300, blue.500)'
-                    bgClip='text'
-                >
-                    GoalTac Sign Up
-                </Heading>
+
+                <Canvas style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: -1 }} />
+                <Image src="logo.png" alt="Logo" boxSize="80px" />
+
                 <Box>
                     <form onSubmit={handleSubmit}>
                         <Stack
                             spacing={4}
                             p='1rem'
-                            backgroundColor={
-                                colorMode === 'light' ? 'whiteAlpha.900' : 'blackAlpha.300'
-                            }
+                            backgroundColor={'blackAlpha.400'}
                             boxShadow='md'
                         >
                             <FormControl>
                                 <InputGroup>
                                     <InputLeftElement
                                         pointerEvents='none'
-                                        children={<CFaUserAlt color='gray.300' />}
-                                    />
-                                    {/* Username */}
-                                    <Input
-                                        type='text'
-                                        id='userName'
-                                        placeholder='Username'
-                                        value={userName}
-                                        onChange={event => setUserName(event.target.value)}
-                                    />
-                                </InputGroup>
-                            </FormControl>
-                            <FormControl>
-                                <InputGroup>
-                                    <InputLeftElement
-                                        pointerEvents='none'
-                                        children={<CFaUserAlt color='gray.300' />}
+                                        children={<AtSignIcon color='gray.300' />}
                                     />
                                     {/* Email */}
                                     <Input
@@ -311,9 +127,7 @@ export default function SignUpPage() {
                                         onChange={event => setPassword(event.target.value)}
                                     />
                                     <InputRightElement width='4.5rem'>
-                                        <Button h='1.75rem' size='sm' onClick={handleShowClick}>
-                                            {/* <ViewIcon color="gray.300" />
-                      <ViewOffIcon color="gray.300" /> */}
+                                        <Button h='1.75rem' size='sm' bg={"whiteAlpha.300"} _hover={{ backgroundColor: 'whiteAlpha.400' }} onClick={handleShowClick}>
                                             {showPassword ? 'hide' : 'show'}
                                         </Button>
                                     </InputRightElement>
@@ -324,6 +138,7 @@ export default function SignUpPage() {
                                 type='submit'
                                 variant='solid'
                                 width='full'
+                                bg={"whiteAlpha.300"} _hover={{ backgroundColor: 'whiteAlpha.400' }}
                             >
                                 Sign Up
                             </Button>
@@ -331,8 +146,9 @@ export default function SignUpPage() {
                             <Button
                                 w={'full'}
                                 maxW={'md'}
-                                variant={'outline'}
+                                variant={'solid'}
                                 leftIcon={<FcGoogle />}
+                                bg={"blackAlpha.600"} _hover={{ bg: "black" }}
                             >
                                 <Center>
                                     <Text>Sign up with Google</Text>
@@ -341,8 +157,8 @@ export default function SignUpPage() {
                         </Stack>
                     </form>
                 </Box>
-                <Link onClick={loading} as={Link} to='/signin'>
-                    {isLoading == true ? <Spinner /> : 'Back to Sign In'}
+                <Link onClick={loading} to='/login'>
+                    {isLoading == true ? <Spinner /> : 'Back to Login'}
                 </Link>
             </Stack>
         </Flex>

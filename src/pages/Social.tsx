@@ -1,10 +1,11 @@
 import { Box, Flex, Heading, Image, Text, IconButton, Spacer, Badge, Drawer, DrawerOverlay, DrawerCloseButton, DrawerHeader, DrawerContent, DrawerBody, Avatar, AvatarBadge, InputGroup, Input, InputRightElement, Button, useColorMode, useBreakpointValue } from '@chakra-ui/react';
-// import { Link as RouterLink } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { FaHeart, FaRegPaperPlane, FaUserFriends } from 'react-icons/fa';
-import GoaltacAd from '../components/GoaltacAd';
-import Ad from '../components/Ad';
-
+import GoaltacAd from '../components/Social/GoaltacAd';
+import Ad from '../components/Social/Ad';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
+import React from 'react';
 
 interface Post {
     id: number;
@@ -15,15 +16,31 @@ interface Post {
     college: string;
 }
 
-interface Message {
-    text: string;
-    sender: 'me' | 'other';
-}
+export default function Social() {
 
-export default function Feed() {
+    // failsafe redirect to login if not authenticated
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            // console.log(user);
+            if (error) {
+                navigate('/login');
+            }
+        };
+        getUser();
+    }, []);
+
+    // changes title of the html tab
+    useEffect(() => {
+        document.title = 'Social';
+    }, []);
+
     const { colorMode } = useColorMode();
 
-    const [posts, setPosts] = useState<Post[]>([
+    // Teomporary posts
+    const [posts] = useState<Post[]>([
         {
             id: 1,
             imageUrl: 'https://via.placeholder.com/150',
@@ -54,99 +71,33 @@ export default function Feed() {
     const boxSize = useBreakpointValue({ base: '200px', md: '300px', lg: '400px' })
     const widthSize = useBreakpointValue({ base: '300px', md: '500px', lg: '800px' })
 
-    // opens the social drawer
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const handleChatClick = () => {
-        setIsDrawerOpen(true);
-    };
-
-    const handleDrawerClose = () => {
-        setIsDrawerOpen(false);
-    };
-
-    // handles messaging
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [inputValue, setInputValue] = useState('');
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(event.target.value);
-    };
-
-    const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (inputValue.trim() === '') {
-            return;
-        }
-        setMessages([...messages, { text: inputValue, sender: 'me' }]);
-        setInputValue('');
-    };
+    const [isShortScreen, setIsShortScreen] = useState(false);
 
     useEffect(() => {
-        document.title = 'Social';
+        const handleResize = () => {
+            setIsShortScreen(window.innerWidth < 768);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+        const target = e.target as HTMLImageElement;
+        target.nextElementSibling?.classList.toggle('hidden');
+    };
+
 
     return (
         <Box>
+
             {/* example of goaltac ad */}
             <GoaltacAd />
             {/* example of an ad */}
             <Ad />
-            {/* drawer */}
-            <Drawer placement="right" onClose={handleDrawerClose} isOpen={isDrawerOpen}>
-                <DrawerOverlay />
-                <DrawerContent>
-                    <DrawerCloseButton />
-                    <DrawerHeader>Friends</DrawerHeader>
-                    <DrawerBody>
 
-                        <Avatar size="sm" margin={2} ml={0}>
-                            <AvatarBadge boxSize='1.25em' bg='green.500' />
-                        </Avatar>
-
-
-                        <Avatar src="/avatar.png" size="sm" margin={2} />
-
-                        <Avatar src="/avatar.png" size="sm" margin={2} />
-
-
-                        <Box bg="white" boxShadow="md" p={4} borderRadius="md">
-                            <Flex direction="column" height="400px">
-                                <Box flex="1" overflowY="scroll">
-                                    {messages.map((message, index) => (
-                                        <Flex key={index} justifyContent={message.sender === 'me' ? 'flex-end' : 'flex-start'} mb={2}>
-                                            {message.sender === 'other' && (
-                                                <Avatar size="sm" margin={2} ml={0}>
-                                                    <AvatarBadge boxSize="1.25em" bg="green.500" />
-                                                </Avatar>
-                                            )}
-                                            <Box maxW="70%" bg={message.sender === 'me' ? 'blue.500' : 'gray.200'} color={message.sender === 'me' ? 'white' : 'black'} p={2} borderRadius="md">
-                                                <Text fontSize="sm">{message.text}</Text>
-                                            </Box>
-                                        </Flex>
-                                    ))}
-                                </Box>
-                                <form onSubmit={handleFormSubmit}>
-                                    <Flex alignItems="center">
-                                        <InputGroup>
-                                            <Input type="text" value={inputValue} onChange={handleInputChange} placeholder="Type a message" />
-                                            <InputRightElement>
-                                                <Button type="submit" aria-label="Send" size="sm" colorScheme="blue" variant="ghost" mr={2}>
-                                                    <FaRegPaperPlane />
-                                                </Button>
-                                            </InputRightElement>
-                                        </InputGroup>
-                                    </Flex>
-                                </form>
-                            </Flex>
-                        </Box>
-
-
-                    </DrawerBody>
-                </DrawerContent>
-            </Drawer>
             {/* post template that maps everything */}
-            {posts.map((post) => (
+            {/* {posts.map((post) => (
                 <Box key={post.id} bg={colorMode === "light" ? 'gray.50' : 'gray.700'} boxShadow="md" mb={4} maxW={widthSize} mx="auto">
                     <Flex alignItems="center">
                         <Image src={post.imageUrl} alt={post.title} boxSize={boxSize} objectFit="cover" mr={4} />
@@ -160,11 +111,44 @@ export default function Feed() {
                         <IconButton aria-label="Like" icon={<FaHeart />} _hover={{ bg: 'pink.100' }} mr={2} />
                     </Flex>
                 </Box>
+            ))} */}
+            {/* post template that maps everything */}
+            {posts.map((post) => (
+                <Box key={post.id} bg={colorMode === "light" ? 'gray.50' : 'gray.700'} boxShadow="md" mb={4} maxW={widthSize} mx="auto">
+                    {isShortScreen ? (
+                        <>
+                            <Image src={post.imageUrl} alt={post.title} boxSize="100%" objectFit="cover" onClick={handleImageClick} />
+                            <Box p={4} className="hidden">
+                                <Heading size="md" color={colorMode === 'light' ? 'black' : 'white'} mb={2}>
+                                    {post.title}
+                                </Heading>
+                                <Text fontSize="sm" color="gray.500" mb={2}>
+                                    {post.date}
+                                </Text>
+                                <Text fontSize="md" color={colorMode === 'light' ? 'black' : 'white'}>
+                                    {post.description}
+                                </Text>
+                                <Badge colorScheme="blue" mt={2}>
+                                    {post.college}
+                                </Badge>
+                            </Box>
+                        </>
+                    ) : (
+
+                        <Flex alignItems="center">
+                            <Image src={post.imageUrl} alt={post.title} boxSize={boxSize} objectFit="cover" mr={4} />
+                            <Box>
+                                <Heading size="md" color={colorMode === 'light' ? 'black' : 'white'} mb={2}>{post.title}</Heading>
+                                <Text fontSize="sm" color="gray.500" mb={2}>{post.date}</Text>
+                                <Text fontSize="md" color={colorMode === 'light' ? 'black' : 'white'} >{post.description}</Text>
+                                <Badge colorScheme="blue" mt={2}>{post.college}</Badge>
+                            </Box>
+                            <Spacer />
+                            <IconButton aria-label="Like" icon={<FaHeart />} _hover={{ bg: 'pink.100' }} mr={2} />
+                        </Flex>
+                    )}
+                </Box>
             ))}
-            {/* chat button */}
-            <Box position="fixed" bottom={4} right={4}>
-                <IconButton aria-label="Chat" icon={<FaUserFriends />} onClick={handleChatClick} />
-            </Box>
         </Box>
     );
 }

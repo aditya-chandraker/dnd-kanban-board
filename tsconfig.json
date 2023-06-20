@@ -16,6 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "src/components/Gradient.js"],
+  "include": ["src", "src/components/Gradient.js", "public/betaContent.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

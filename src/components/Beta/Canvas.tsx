@@ -40,7 +40,7 @@ const Canvas: React.FC<CanvasProps> = props => {
 
         for (let x = 0; x <= 35; x++) {
             for (let y = 0; y <= 35; y++) {
-                col(x*10, y*10, R(x, y, (frameCount * Math.PI) / 180)/10, G(x, y, (frameCount * Math.PI) / 180)/10, B(x, y, (frameCount * Math.PI) / 180)/2);
+                col(x * 10, y * 10, R(x, y, (frameCount * Math.PI * 2) / 180) / 10, G(x, y, (frameCount * Math.PI * 2) / 180) / 10, B(x, y, (frameCount * Math.PI * 2) / 180) / 2);
             }
         }
     };

@@ -13,8 +13,8 @@ import {
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { memo, useState } from 'react';
-import { useTaskDragAndDrop } from '../../hooks/useTaskDragAndDrop';
-import { TaskModel } from '../../utils/models';
+import { useTaskDragAndDrop } from './hooks/useTaskDragAndDrop';
+import { TaskModel } from './utils/models';
 import { AutoResizeTextarea } from './AutoResizeTextArea';
 
 type TaskProps = {
@@ -88,7 +88,7 @@ function Task({
           right={0}
           zIndex={100}
           aria-label="delete-task"
-          size="md"
+          size="xs"
           colorScheme="solid"
           color={'gray.700'}
           icon={<DeleteIcon />}
@@ -100,14 +100,15 @@ function Task({
         />
         <IconButton
           position="absolute"
-          top={6}
+          top={4}
           right={0}
           zIndex={100}
           aria-label="preview-task"
-          size="md"
+          size="xs"
           colorScheme="solid"
           color={'gray.700'}
           icon={<ViewIcon />}
+          fontSize={12}
           opacity={0}
           _groupHover={{
             opacity: 1,

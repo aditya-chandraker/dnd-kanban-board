@@ -1,23 +1,18 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
-import { Box, Button, Center, Flex, FormControl, FormHelperText, Heading, Input, InputGroup, InputLeftElement, InputRightElement, Stack, Text, chakra, useColorMode, useToast } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, FormControl, FormHelperText, Heading, Input, InputGroup, InputLeftElement, InputRightElement, Stack, Text, chakra, useColorMode, useToast, Image, background } from '@chakra-ui/react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
-import { AuthContext } from '../components/AuthContext';
+import Canvas from '../components/Beta/Canvas';
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 
 export default function Login() {
-    // For React Router
+
+    // navigates to calendar page if authenticated
     const navigate = useNavigate();
-    const { authenticated, setAuthenticated } = useContext(AuthContext)
-    const handleLogin = () => {
-        setAuthenticated(true)
-        console.log("authenication is:" + authenticated)
-        navigate('/calendar');
-    }
 
     //For Supabase
     const [email, setEmail] = useState('')
@@ -51,9 +46,8 @@ export default function Login() {
             })
             console.log(data)
             if (data.session) {
-                handleLogin();
                 // it worked
-                // navigate('/calendar', { state: { session: data.session } })
+                navigate('/calendar')
 
             } else {
                 toast({
@@ -75,7 +69,6 @@ export default function Login() {
             console.log(err)
         }
     }
-
 
     const ForgotPassword = async function () {
         toast.closeAll() //Closes all previous opened toasts (makes spam clicking submit be less annoying)
@@ -116,100 +109,97 @@ export default function Login() {
     }
 
     return (
+
         <Flex
             flexDirection='column'
             width='100wh'
             height='100vh'
             justifyContent='center'
             alignItems='center'
+            color="white"
         >
-            <Stack
-                flexDir='column'
-                mb='2'
-                justifyContent='center'
-                alignItems='center'
-            >
-                <Heading
-                    fontWeight='extrabold'
-                    bgGradient='linear(to-l, teal.300, blue.500)'
-                    bgClip='text'
+            <Canvas style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: -1, }} />
+            <Box>
+                <Stack
+                    flexDir='column'
+                    mb='2'
+                    justifyContent='center'
+                    alignItems='center'
                 >
-                    GoalTac
-                </Heading>
-                <Box>
-                    <form onSubmit={handleSubmit}>
-                        <Stack
-                            spacing={4}
-                            p='1rem'
-                            backgroundColor={
-                                colorMode === 'light' ? 'whiteAlpha.900' : 'blackAlpha.300'
-                            }
-                            boxShadow='md'
-                        >
-                            <FormControl>
-                                <InputGroup>
-                                    <InputLeftElement
-                                        pointerEvents='none'
-                                        children={<CFaUserAlt color='gray.300' />}
-                                    />
-                                    {/* Email */}
-                                    <Input
-                                        type='email'
-                                        placeholder='Email Address'
-                                        value={email}
-                                        onChange={event => setEmail(event.target.value)}
-                                        _autofill={{ backgroundColor: 'transparent' }}
-                                    />
-                                </InputGroup>
-                            </FormControl>
-                            <FormControl>
-                                <InputGroup>
-                                    <InputLeftElement pointerEvents='none' color='gray.300'>
-                                        <CFaLock color='gray.300' />
-                                    </InputLeftElement>
-                                    {/* Password */}
-                                    <Input
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder='Password'
-                                        value={password}
-                                        onChange={event => setPassword(event.target.value)}
-                                    />
-                                    <InputRightElement width='4.5rem'>
-                                        <Button h='1.75rem' size='sm' onClick={handleShowClick}>
-                                            {/* <ViewIcon color="gray.300" />
-                      <ViewOffIcon color="gray.300" /> */}
-                                            {showPassword ? 'hide' : 'show'}
-                                        </Button>
-                                    </InputRightElement>
-                                </InputGroup>
-                                <FormHelperText textAlign='right'>
-                                    <Link to='/resetpassword'>
-                                        Forgot password?
-                                    </Link>
-                                </FormHelperText>
-                            </FormControl>
-                            <Button
-                                borderRadius={5}
-                                type='submit'
-                                variant='solid'
-                                width='full'
+                    <Image src="logo.png" alt="Logo" boxSize="80px" />
+                    <Box>
+                        <form onSubmit={handleSubmit}>
+                            <Stack
+                                spacing={4}
+                                p='1rem'
+                                backgroundColor={'blackAlpha.400'}
+                                boxShadow='md'
                             >
-                                Login
-                            </Button>
-                            <Button
-                                w={'full'}
-                                maxW={'md'}
-                                variant={'outline'}
-                                leftIcon={<FcGoogle />}
-                            >
-                                <Center>
-                                    <Text>Sign in with Google</Text>
-                                </Center>
-                            </Button>
-                        </Stack>
-                    </form>
-                </Box>
-            </Stack>
+                                <FormControl>
+                                    <InputGroup>
+                                        <InputLeftElement
+                                            pointerEvents='none'
+                                            children={<CFaUserAlt color='gray.300' />}
+                                        />
+                                        {/* Email */}
+                                        <Input
+                                            type='email'
+                                            placeholder='Email Address'
+                                            value={email}
+                                            onChange={event => setEmail(event.target.value)}
+                                            _autofill={{ backgroundColor: 'transparent' }}
+                                        />
+                                    </InputGroup>
+                                </FormControl>
+                                <FormControl>
+                                    <InputGroup>
+                                        <InputLeftElement pointerEvents='none' color='gray.300'>
+                                            <CFaLock color='gray.300' />
+                                        </InputLeftElement>
+                                        {/* Password */}
+                                        <Input
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder='Password'
+                                            value={password}
+                                            onChange={event => setPassword(event.target.value)}
+                                        />
+                                        <InputRightElement width='4.5rem'>
+                                            <Button h='1.75rem' size='sm' onClick={handleShowClick} bg={"whiteAlpha.300"} _hover={{ backgroundColor: 'whiteAlpha.400' }}>
+                                                {showPassword ? 'hide' : 'show'}
+                                            </Button>
+                                        </InputRightElement>
+                                    </InputGroup>
+                                    <FormHelperText textAlign='right'>
+                                        <Link to='/resetpassword'>
+                                            Forgot password?
+                                        </Link>
+                                    </FormHelperText>
+                                </FormControl>
+                                <Button
+                                    borderRadius={5}
+                                    type='submit'
+                                    variant='solid'
+                                    width='full'
+                                    bg={"whiteAlpha.300"} _hover={{ backgroundColor: 'whiteAlpha.400' }}
+                                >
+                                    Login
+                                </Button>
+                                <Button
+                                    w={'full'}
+                                    maxW={'md'}
+                                    variant={'solid'}
+                                    leftIcon={<FcGoogle />}
+                                    bg={"blackAlpha.600"} _hover={{ bg: "black" }}
+                                >
+                                    <Center>
+                                        <Text>Sign in with Google</Text>
+                                    </Center>
+                                </Button>
+                            </Stack>
+                        </form>
+                    </Box>
+                </Stack>
+            </Box>
             <Box>
                 New Here?{' '}
                 <Link to='/signup'>

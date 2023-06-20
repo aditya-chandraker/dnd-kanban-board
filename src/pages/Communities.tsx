@@ -1,4 +1,8 @@
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase";
+import Chat from "../components/Communities/Chat";
 
 interface AlbumProps {
     title: string;
@@ -13,9 +17,26 @@ interface CommunitiesProps {
 
 // export default function Communities({ albums }: CommunitiesProps) {
 export default function Communities() {
+
+    // failsafe redirect to login if not authenticated
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            // console.log(user);
+            if (error) {
+                navigate('/login');
+            }
+        };
+        getUser();
+    }, []);
+
+
+    // Temporary communities
     const albums = [{ title: "ur mom", old: "5 years", description: "is gay", image: "https://i.ytimg.com/vi/1Ne1hqOXKKI/maxresdefault.jpg" },
     { title: "Backflip in a year", old: "4 years", description: "UConn comunity teaching others how to get over their mental psyces and praying that we don't lose brain cels while landing on our spines", image: "https://i.ytimg.com/vi/1Ne1hqOXKKI/maxresdefault.jpg" },
-    { title: "ur mom", old: "5 years", description: "is gay", image: "" },
+    { title: "ur mommy", old: "5 years", description: "is gay", image: "" },
     { title: "ur mom long long long long title", old: "5 years", description: "is gay", image: "https://i.ytimg.com/vi/1Ne1hqOXKKI/maxresdefault.jpg" },]
 
     return (
@@ -48,6 +69,8 @@ export default function Communities() {
                     </Box>
                 </Box>
             ))}
+
+            <Chat />
         </Flex>
     );
 }
