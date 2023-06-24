@@ -1,70 +1,19 @@
 import { useLocalStorage } from 'usehooks-ts';
-
 import { v4 as uuidv4 } from 'uuid';
 import { ColumnType } from '../utils/enums';
 import { TaskModel } from '../utils/models';
 
-function useTaskCollection() {
+export default function useTaskCollection() {
+
   return useLocalStorage<{
-    [key in ColumnType]: TaskModel[];
+    [key in ColumnType]: TaskModel[]; // Define the shape of the stateful value as an object with keys of type ColumnType and values of type TaskModel[]
   }>('tasks', {
-    Monday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.MONDAY,
-        title: 'Task 1',
-        color: 'blue.300',
-      },
-    ],
-    Tuesday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.TUESDAY,
-        title: 'Task 2',
-        color: 'yellow.300',
-      },
-    ],
-    Wednesday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.WEDNESDAY,
-        title: 'Task 3',
-        color: 'red.300',
-      },
-    ],
-    Thursday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.THURSDAY,
-        title: 'Task 4',
-        color: 'green.300',
-      },
-    ],
-    Friday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.FRIDAY,
-        title: 'Task 4',
-        color: 'green.300',
-      },
-    ],
-    Saturday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.SATURDAY,
-        title: 'Task 4',
-        color: 'green.300',
-      },
-    ],
-    Sunday: [
-      {
-        id: uuidv4(),
-        column: ColumnType.SUNDAY,
-        title: 'Task 4',
-        color: 'green.300',
-      },
-    ],
+    Monday: [{ id: uuidv4(), column: ColumnType.MONDAY, title: "temp", color: "temp", type:"task"},],
+    Tuesday: [{ id: uuidv4(), column: ColumnType.TUESDAY, title: "temp", color: "temp", type:"task"},],
+    Wednesday: [{ id: uuidv4(), column: ColumnType.WEDNESDAY, title: "temp", color: "temp", type:"task"},],
+    Thursday: [{ id: uuidv4(), column: ColumnType.THURSDAY, title: "temp", color: "temp", type:"task"},],
+    Friday: [{ id: uuidv4(), column: ColumnType.FRIDAY, title: "temp", color: "temp", type:"task"},],
+    Saturday: [{ id: uuidv4(), column: ColumnType.SATURDAY, title: "temp", color: "temp", type:"task"},],
+    Sunday: [{ id: uuidv4(), column: ColumnType.SUNDAY, title: "temp", color: "temp", type:"task"},],
   });
 }
-
-export default useTaskCollection;

@@ -12,15 +12,15 @@ import useColumnTasks from './hooks/useColumnTasks';
 import { ColumnType } from './utils/enums';
 import Task from './Task';
 
-// const ColumnColorScheme: Record<ColumnType, string> = {
-//   Monday: 'gray',
-//   Tuesday: 'grey',
-//   Wednesday: 'grey',
-//   Thursday: 'grey',
-//   Friday: 'grey',
-//   Saturday: 'white',
-//   Sunday: 'white',
-// };
+const ColumnColorScheme: Record<ColumnType, string> = {
+  Monday: 'gray',
+  Tuesday: 'grey',
+  Wednesday: 'grey',
+  Thursday: 'grey',
+  Friday: 'grey',
+  Saturday: 'white',
+  Sunday: 'white',
+};
 
 const currentDate = new Date();
 
@@ -51,7 +51,7 @@ function Column({ column }: { column: ColumnType }) {
     dropTaskFrom,
     swapTasks,
     updateTask,
-  } = useColumnTasks(column);
+  } = useColumnTasks(column, 'white');
 
   const { dropRef, isOver } = useColumnDrop(column, dropTaskFrom);
 
@@ -72,7 +72,7 @@ function Column({ column }: { column: ColumnType }) {
         <Badge
           px={1}
           rounded="sm"
-          // colorScheme={ColumnColorScheme[column]}
+          bg={useColorModeValue('gray.100', 'gray.900')}
         >
           {column}
         </Badge>

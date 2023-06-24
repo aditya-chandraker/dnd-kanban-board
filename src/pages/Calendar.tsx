@@ -38,7 +38,9 @@ function Calendar() {
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      // console.log(user);
+
+      if (data)
+        console.log(data);
       if (error) {
         navigate('/login');
       }

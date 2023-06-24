@@ -1,7 +1,7 @@
 import { Box, Flex, Text, IconButton, Drawer, DrawerOverlay, DrawerCloseButton, DrawerHeader, DrawerContent, DrawerBody, Avatar, AvatarBadge, InputGroup, Input, InputRightElement, Button, useColorMode, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, FormControl, ModalBody, FormLabel, ModalFooter, Toast, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { FaRegPaperPlane, } from 'react-icons/fa';
-import { supabase } from '../../supabase';
+import { FaCircle, FaRegPaperPlane, } from 'react-icons/fa';
+import { supabase } from '../supabase';
 import { ChatIcon } from '@chakra-ui/icons';
 
 interface Message {
@@ -118,55 +118,67 @@ export default function Chat() {
             console.log(error);
             return
         } else {
-            // add my id to my friends list
-            const { error: friendError } = await supabase
-                .from('profiles')
-                .update({
-                    friends: [...friendIdArr, data[0].userid],
-                })
-                .eq('userid', user.id);
-            if (friendError) {
-                console.log(friendError);
-            } else {
-                setIsModalOpen(false);
-                setUsername('');
-
-                // get their friend requests
-                const { data: theirRequests, error: getRequestsError } = await supabase
-                    .from('friend_requests')
-                    .select('requests')
-                    .eq('userid', data[0].userid);
-
-                const [firstRequest] = theirRequests || [];
-                console.log(theirRequests);
-                const requestsArray = firstRequest.requests;
-
-                requestsArray.push(user.id);
-
-                // add friend to my friend's friend requests
-                const { error: updateRequestsError } = await supabase
-                    .from('friend_requests')
-                    .update({ requests: requestsArray })
-                    .eq('userid', data[0].userid);
-
-                // let { data, error } = await supabase
-                //     .rpc('append_array', {
-                //         id,
-                //         user.id
-                //     })
-
-                if (updateRequestsError || getRequestsError) {
-                    console.log(updateRequestsError);
-                } else {
-                    toast({
-                        title: "Friend Request Sent!",
-                        position: 'bottom',
-                        status: 'success',
-                        duration: 5000,
-                        isClosable: false,
+            // check if they are already friends
+            if (!friendIdArr.includes(data[0].userid)) {
+                // add my id to my friends list
+                const { error: friendError } = await supabase
+                    .from('profiles')
+                    .update({
+                        friends: [...friendIdArr, data[0].userid],
                     })
-                    return
+                    .eq('userid', user.id);
+                if (friendError) {
+                    console.log(friendError);
+                } else {
+                    setIsModalOpen(false);
+                    setUsername('');
+
+                    // get their friend requests
+                    const { data: theirRequests, error: getRequestsError } = await supabase
+                        .from('friend_requests')
+                        .select('requests')
+                        .eq('userid', data[0].userid);
+
+                    const [firstRequest] = theirRequests || [];
+                    console.log(theirRequests);
+                    const requestsArray = firstRequest.requests;
+
+                    requestsArray.push(user.id);
+
+                    // add friend to my friend's friend requests
+                    const { error: updateRequestsError } = await supabase
+                        .from('friend_requests')
+                        .update({ requests: requestsArray })
+                        .eq('userid', data[0].userid);
+
+                    // let { data, error } = await supabase
+                    //     .rpc('append_array', {
+                    //         id,
+                    //         user.id
+                    //     })
+
+                    if (updateRequestsError || getRequestsError) {
+                        console.log(updateRequestsError);
+                    } else {
+                        toast({
+                            title: "Friend Request Sent!",
+                            position: 'bottom',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: false,
+                        })
+                        return
+                    }
                 }
+            } else {
+                toast({
+                    title: "Already Your friend! Or you already sent a request!",
+                    position: 'bottom',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: false,
+                })
+                return
             }
         }
     };
@@ -205,7 +217,7 @@ export default function Chat() {
         setMessages([...messages, { text: inputValue, sender: 'me' }]);
         setInputValue('');
 
-        // add cooldown
+        // add cooldown NOT WORKING RN
         setIsSubmitting(true);
         setTimeout(() => {
             setIsSubmitting(false);
@@ -253,7 +265,19 @@ export default function Chat() {
 
             setMessages(messages as Message[]);
         }
+
     };
+
+    const messages_channel = supabase.channel('custom-insert-channel')
+        .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages' },
+            (payload) => {
+                if (payload.new.sender_id === currentChatMessages)
+                    setMessages([...messages, { text: payload.new.text, sender: 'other' }]);
+            }
+        )
+        .subscribe()
 
 
     return (
@@ -344,13 +368,17 @@ export default function Chat() {
             {/* chat button */}
             <Box position="fixed" bottom={4} right={4}>
                 <IconButton aria-label="Chat" icon={<ChatIcon />} onClick={handleChatClick} />
+                <Box as={FaCircle} color="red.500" position={'absolute'} right={-1} bottom={-1} size={'.8em'} />
             </Box>
         </>
     )
 }
 
 
-// Friend requests table
+// Friend requests table for the future
+// make it so that
+// - authenticated users can only see their own friend requests
+// - authenticated users can only insert but not update or read other users' friend requests
 //`````````````````````````````````````````````````````````````
 
 // create table if not exists public.array_table (

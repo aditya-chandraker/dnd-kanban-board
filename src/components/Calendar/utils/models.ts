@@ -5,6 +5,7 @@ export interface TaskModel {
   title: string;
   column: ColumnType;
   color: string;
+  type: string;
 }
 
 export interface DragItem {

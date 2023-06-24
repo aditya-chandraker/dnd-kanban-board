@@ -1,6 +1,6 @@
-import { useColorMode, Flex, Box, Image, Avatar, Menu, MenuButton, MenuList, MenuItem, Switch, IconButton, InputGroup, InputLeftElement, Input, Icon, useMediaQuery, Button } from "@chakra-ui/react";
+import { useColorMode, Flex, Box, Image, Avatar, Menu, MenuButton, MenuList, MenuItem, Switch, IconButton, InputGroup, InputLeftElement, Input, Icon, useMediaQuery, Button, Badge, AvatarBadge } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { FaUser, FaSignOutAlt, FaRegNewspaper, FaSearch, FaUsers } from "react-icons/fa";
+import { FaUser, FaSignOutAlt, FaRegNewspaper, FaSearch, FaUsers, FaShoppingBag, FaCircle } from "react-icons/fa";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { supabase } from '../supabase';
 
@@ -30,9 +30,9 @@ export default function Root() {
   const [showSearchBar, setShowSearchBar] = useState(true);
   const handleButtonClick = () => {
     if (isLargerThan768 || !showSearchBar && inputValue !== '')
-      navigate(`/search?query=${inputValue}`);
-    else
-      setShowSearchBar(!showSearchBar);
+      navigate(`/search/${inputValue}`);
+
+    setShowSearchBar(!showSearchBar);
   };
 
   // get avatar url
@@ -68,7 +68,8 @@ export default function Root() {
         zIndex={10}>
 
         {/* logo to link to home (calendar) */}
-        <Box display={showSearchBar ? 'block' : 'none'}>
+        <Box display={showSearchBar ? 'block' : 'none'} position={"relative"}>
+          <Badge position={"absolute"} right={-1} bottom={-1} bg={"rgb(15,15,15,.2)"} fontSize={'10px'}>10000</Badge>
           <Link to="/calendar">
             <Image src="/logo.png" alt="Logo" boxSize="40px" minWidth="40px" />
           </Link>
@@ -96,15 +97,21 @@ export default function Root() {
           </Box>
         )}
 
-        <IconButton as={Link} to="/communities" aria-label="Social" icon={<FaUsers />} fontSize="3xl" background="none" display={showSearchBar ? 'flex' : 'none'} float={"right"} ml={9} mr={9} />
+        <Box position={'relative'}>
+          <IconButton as={Link} to="/communities" aria-label="Social" icon={<FaUsers />} fontSize="3xl" background="none" display={showSearchBar ? 'flex' : 'none'} float={"right"} ml={9} mr={9} />
+          <Box as={FaCircle} color="red.500" position={'absolute'} right={8} bottom={0} size={'.8em'}/>
+        </Box>
 
 
         {/* Profile */}
         <Box ml="auto" pr={2} display={showSearchBar ? 'block' : 'none'}>
           <Menu>
-            <MenuButton as={Avatar} size="sm" cursor="pointer" src={avatarUrl} />
+            <MenuButton as={Avatar} size="sm" cursor="pointer" src={avatarUrl}>
+              <AvatarBadge boxSize='1.25em' bg='red.500' />
+            </MenuButton>
             <MenuList>
-              <Link to="/profile"><MenuItem icon={<FaUser />} fontSize="sm">Profile & Settings</MenuItem></Link>
+              <Link to="/market"><MenuItem icon={<FaShoppingBag />} fontSize="sm">Market<Badge float={"right"} m={1}>242,301 pts</Badge></MenuItem></Link>
+              <Link to="/settings"><MenuItem icon={<FaUser />} fontSize="sm">Settings<Box as={FaCircle} color="red" float={"right"} m={1} /></MenuItem> </Link>
               <MenuItem icon={<FaSignOutAlt />} fontSize="sm" onClick={handleLogout}>Logout</MenuItem>
               <MenuItem fontSize="sm">Dark Mode<Switch ml="auto" isChecked={colorMode === "dark"} onChange={toggleColorMode} /></MenuItem>
             </MenuList>
@@ -112,6 +119,6 @@ export default function Root() {
         </Box>
       </Flex>
       <Outlet />
-    </div>
+    </div >
   );
 };

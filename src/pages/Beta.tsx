@@ -1,11 +1,19 @@
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import { Box, Flex, Stack, VStack, Text, Button, Image, Avatar, Heading, useColorModeValue, Badge } from "@chakra-ui/react";
+import { Box, Flex, Stack, VStack, Text, Button, Image, Avatar, Heading, useColorModeValue, Badge, IconButton } from "@chakra-ui/react";
 import Canvas from "../components/Beta/Canvas";
 import { Link } from "react-router-dom";
+import {
+    FaDiscord,
+    FaFacebookSquare,
+    FaInstagram,
+    FaTwitter,
+    FaYoutube,
+    FaTiktok,
+} from 'react-icons/fa';
 
 // edit this file to change the content of the beta page
-import { content, staffProfiles, responsive } from '../components/Beta/betaContent';
+import { content, staffProfiles, responsive } from '../components/Beta/BetaContent';
 
 export default function BetaPage() {
     return (
@@ -114,6 +122,26 @@ export default function BetaPage() {
                 </Carousel>
                 <br />
             </Box>
+
+            {/* Footer */}
+            <Stack direction={['column', null, 'row']} p={2}>
+
+                <Stack direction={'row'} mt={4} ml={4} mr={4}>
+                    <IconButton as="a" href="https://discord.com/" target="_blank" rel="noopener noreferrer" aria-label="Discord" icon={<FaDiscord />} mr={2} />
+                    <IconButton as="a" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" icon={<FaFacebookSquare />} mr={2} />
+                    <IconButton as="a" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" icon={<FaInstagram />} mr={2} />
+                    <IconButton as="a" href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" icon={<FaTwitter />} mr={2} />
+                    <IconButton as="a" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" icon={<FaYoutube />} mr={2} />
+                    <IconButton as="a" href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok" icon={<FaTiktok />} />
+                </Stack>
+
+                <Box p={4} ml={'auto'}>
+                    <Text>Copyright 2023. All Rights Reserved.</Text>
+                    <Link to={'privatepolicy'} style={{ fontWeight: 'bold' }}>Private Policy</Link>
+                </Box>
+
+            </Stack>
+
 
             {/* Button to Login (must be rendered last to be on top)*/}
             <Button as={Link} to="/login" position="fixed" top={4} right={120} style={{ opacity: 0.8, backgroundColor: 'rgba(0,0,0)' }} textColor='white'>Login</Button>

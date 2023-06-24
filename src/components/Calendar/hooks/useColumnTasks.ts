@@ -8,7 +8,7 @@ import useTaskCollection from './useTaskCollection';
 
 const MAX_TASK_PER_COLUMN = 100;
 
-function useColumnTasks(column: ColumnType) {
+function useColumnTasks(column: ColumnType, colorOveride: string) {
   const [tasks, setTasks] = useTaskCollection();
 
   const columnTasks = tasks[column];
@@ -26,7 +26,7 @@ function useColumnTasks(column: ColumnType) {
       const newColumnTask: TaskModel = {
         id: uuidv4(),
         title: `New ${column} task`,
-        color: pickChakraRandomColor('.300'),
+        color: colorOveride ? colorOveride : pickChakraRandomColor('.300'),
         column,
       };
 

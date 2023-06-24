@@ -103,6 +103,32 @@ export default function Profile() {
         setShowNameModal(true);
     };
 
+    // get the user's friend requests
+    const [friendRequests, setFriendRequests] = useState([]);
+    useEffect(() => {
+        async function fetchFriendRequests() {
+            // get my user id
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                console.log('User not found');
+                return;
+            }
+
+            const { data: friendRequestsData, error: friendRequestsError } = await supabase
+                .from('friend_requests')
+                .select('requests')
+                .eq('userid', user.id); // Replace 1 with the user ID of the current user
+
+            if (friendRequestsError) {
+                console.error(friendRequestsError);
+            } else {
+                setFriendRequests(friendRequestsData[0].requests);
+            }
+        }
+
+        fetchFriendRequests();
+    }, []);
+
 
     return (
         <Stack
@@ -179,6 +205,17 @@ export default function Profile() {
                     onChange={(e) => setPerson({ name: person.name, username: person.username, biography: e.target.value, avatarurl: person.avatarurl })}
 
                 />
+
+                <Badge colorScheme="blue" fontSize="md" mb={1}>Friend Requests</Badge>
+
+                {friendRequests.map((friendRequest) => (
+                    <Box>
+                        <Avatar key={friendRequest} name={friendRequest} size={"lg"} src="" />
+                        <Text>{friendRequest}</Text>
+                        <Button>Accept</Button>
+                    </Box>
+                ))}
+
             </Box>
         </Stack>
     );
