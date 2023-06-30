@@ -2,7 +2,7 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import { Box, Flex, Stack, VStack, Text, Button, Image, Avatar, Heading, useColorModeValue, Badge, IconButton } from "@chakra-ui/react";
 import Canvas from "../components/Beta/Canvas";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     FaDiscord,
     FaFacebookSquare,
@@ -14,8 +14,23 @@ import {
 
 // edit this file to change the content of the beta page
 import { content, staffProfiles, responsive } from '../components/Beta/BetaContent';
+import { useEffect } from 'react';
+import { supabase } from '../supabase';
 
 export default function BetaPage() {
+    // failsafe redirect to login if not authenticated
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            // console.log(data);
+            if (data.user != null)
+                navigate('/calendar');
+        };
+        getUser();
+    }, []);
+
     return (
         <Box position="relative">
 
@@ -127,7 +142,7 @@ export default function BetaPage() {
             <Stack direction={['column', null, 'row']} p={2}>
 
                 <Stack direction={'row'} mt={4} ml={4} mr={4}>
-                    <IconButton as="a" href="https://discord.com/" target="_blank" rel="noopener noreferrer" aria-label="Discord" icon={<FaDiscord />} mr={2} />
+                    <IconButton as="a" href="https://discord.com/" target="_blank" rel="noopener noreferrer" aria-label="Discord" icon={<FaDiscord />} />
                     <IconButton as="a" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" icon={<FaFacebookSquare />} mr={2} />
                     <IconButton as="a" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" icon={<FaInstagram />} mr={2} />
                     <IconButton as="a" href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" icon={<FaTwitter />} mr={2} />

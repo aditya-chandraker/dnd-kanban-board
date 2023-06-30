@@ -62,7 +62,7 @@ export default function Communities() {
                     score: album.score || 0,
                 }));
                 setAlbums(mappedAlbums);
-                console.log(mappedAlbums);
+                // console.log(mappedAlbums);
             }
         };
 

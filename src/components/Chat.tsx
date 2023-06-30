@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { FaCircle, FaRegPaperPlane, } from 'react-icons/fa';
 import { supabase } from '../supabase';
 import { ChatIcon } from '@chakra-ui/icons';
+import { useLocation } from 'react-router-dom';
 
 interface Message {
     text: string;
@@ -40,6 +41,72 @@ export default function Chat() {
         setIsDrawerOpen(false);
     };
 
+    // handles whether this is a groupchat or not
+    const [typeOfChat, setTypeOfChat] = useState(true);
+    const location = useLocation();
+
+    useEffect(() => {
+        async function fetchMessages() {
+            if (location.pathname.includes('/communities')) {
+                setTypeOfChat(true);
+            } else if (location.pathname.includes('/community')) {
+                // we in the CommunityView
+                setTypeOfChat(false);
+
+                // console.log(location.pathname.split('/')[2].toLowerCase())
+
+                const { data, error } = await supabase
+                    .from('communities')
+                    .select('communityid')
+                    .eq('name', location.pathname.split('/')[2].toLowerCase().replaceAll('%20', ' '));
+
+                if (error) {
+                    console.log(error);
+                    return;
+                }
+
+                const communityId = data[0]?.communityid || '';
+
+                setCurrentChatMessages(communityId);
+
+                // get my user id
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    console.log('User not found');
+                    return;
+                }
+
+                const { data: receivedMessages, error: receivedMessagesError } = await supabase
+                    .from('messages')
+                    .select('text, created_at, sender_id')
+                    .eq('recipient_id', communityId)
+                    .eq('sender_id', user.id);
+                const { data: sentMessages, error: sentMessagesError } = await supabase
+                    .from('messages')
+                    .select('text, created_at, sender_id')
+                    .eq('recipient_id', communityId);
+                if (receivedMessagesError || sentMessagesError) {
+                    console.log(receivedMessagesError || sentMessagesError);
+                } else {
+
+                    const messages = [...receivedMessages, ...sentMessages].map((message: any) => {
+                        return {
+                            text: message.text,
+                            sender: message.sender_id === user.id ? 'me' : 'other',
+                            time: message.created_at,
+                        };
+                    });
+
+                    // sorts based on time sent
+                    messages.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+
+                    setMessages(messages as Message[]);
+                }
+            }
+        }
+
+        fetchMessages();
+    }, []);
 
     // display friends on the top bar
     const [friendIdArr, setFriendIdArr] = useState<string[]>([]); // array of friend ids
@@ -57,7 +124,8 @@ export default function Chat() {
                 setFriendIdArr(data[0].friends);
 
                 // current chat that shows up is the first friend
-                handleFriendClick(data[0].friends[0]);
+                if(typeOfChat)
+                    handleFriendClick(data[0].friends[0]);
 
                 // gets avatars
                 const { data: friendAvatars } = await supabase
@@ -284,86 +352,125 @@ export default function Chat() {
         <>
             <Drawer placement="right" onClose={handleDrawerClose} isOpen={isDrawerOpen}>
                 <DrawerOverlay />
-                <DrawerContent>
-                    <DrawerCloseButton />
-                    <DrawerHeader>Friends</DrawerHeader>
-                    <DrawerBody>
-                        <Box>
-                            {friendIdArr && friendIdArr.slice(0, 4).map((friend: any, index: number) => (
-                                <Avatar
-                                    key={index}
-                                    src={friendAvatarArr[index]}
-                                    size="sm"
-                                    m={1}
-                                    mb={-10}
-                                    onClick={() => handleFriendClick(friendIdArr[index])}
-                                />
-                            ))}
-                            {friendIdArr && friendIdArr.length > 4 && (
-                                <Button size="sm" m={1}>
-                                    ...
-                                </Button>
-                            )}
-
-                            <Button size="sm" m={1} float="right" onClick={handleAddFriend}>
-                                +
-                            </Button>
-                        </Box>
-
-
-                        <Modal isOpen={isModalOpen} onClose={handleModalClose}>
-                            <ModalOverlay />
-                            <ModalContent>
-                                <ModalHeader>Add Friend</ModalHeader>
-                                <ModalCloseButton />
-                                <ModalBody>
-                                    <FormControl>
-                                        <FormLabel>Username</FormLabel>
-                                        <Input value={username} onChange={handleUsernameChange} />
-                                    </FormControl>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button m={1} onClick={handleModalClose}>Cancel</Button>
-                                    <Button m={1} colorScheme="blue" onClick={handleAddFriendSubmit}>
-                                        Add
+                {typeOfChat ? (
+                    <DrawerContent>
+                        <DrawerCloseButton />
+                        <DrawerHeader>Friends</DrawerHeader>
+                        <DrawerBody>
+                            <Box>
+                                {friendIdArr && friendIdArr.slice(0, 4).map((friend: any, index: number) => (
+                                    <Avatar
+                                        key={index}
+                                        src={friendAvatarArr[index]}
+                                        size="sm"
+                                        m={1}
+                                        mb={-10}
+                                        onClick={() => handleFriendClick(friendIdArr[index])}
+                                    />
+                                ))}
+                                {friendIdArr && friendIdArr.length > 4 && (
+                                    <Button size="sm" m={1}>
+                                        ...
                                     </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
+                                )}
+
+                                <Button size="sm" m={1} float="right" onClick={handleAddFriend}>
+                                    +
+                                </Button>
+                            </Box>
 
 
-                        <Box bg={colorMode === "light" ? 'gray.100' : 'gray.800'} boxShadow="md" p={3} mt={10} borderRadius="md">
-                            <Flex direction="column" height="70vh">
-                                <Box flex="1" mb={3} overflowY="scroll">
-                                    {messages.map((message, index) => (
-                                        <Flex key={index} justifyContent={message.sender === 'me' ? 'flex-end' : 'flex-start'} mb={2}>
-                                            {message.sender === 'other' && (
-                                                <Avatar size="xs" m={2} ml={0} src={currentChatAvatar} />
-                                            )}
-                                            <Box maxW="70%" bg={message.sender === 'me' ? 'blue.500' : 'gray.200'} color={message.sender === 'me' ? 'white' : 'black'} px={3} py={1} borderRadius="md">
-                                                <Text fontSize="sm">{message.text}</Text>
-                                            </Box>
+                            <Modal isOpen={isModalOpen} onClose={handleModalClose}>
+                                <ModalOverlay />
+                                <ModalContent>
+                                    <ModalHeader>Add Friend</ModalHeader>
+                                    <ModalCloseButton />
+                                    <ModalBody>
+                                        <FormControl>
+                                            <FormLabel>Username</FormLabel>
+                                            <Input value={username} onChange={handleUsernameChange} />
+                                        </FormControl>
+                                    </ModalBody>
+                                    <ModalFooter>
+                                        <Button m={1} onClick={handleModalClose}>Cancel</Button>
+                                        <Button m={1} colorScheme="blue" onClick={handleAddFriendSubmit}>
+                                            Add
+                                        </Button>
+                                    </ModalFooter>
+                                </ModalContent>
+                            </Modal>
+
+
+                            <Box bg={colorMode === "light" ? 'gray.100' : 'gray.800'} boxShadow="md" p={3} mt={10} borderRadius="md">
+                                <Flex direction="column" height="70vh">
+                                    <Box flex="1" mb={3} overflowY="scroll">
+                                        {messages.map((message, index) => (
+                                            <Flex key={index} justifyContent={message.sender === 'me' ? 'flex-end' : 'flex-start'} mb={2}>
+                                                {message.sender === 'other' && (
+                                                    <Avatar size="xs" m={2} ml={0} src={currentChatAvatar} />
+                                                )}
+                                                <Box maxW="70%" bg={message.sender === 'me' ? 'blue.500' : 'gray.200'} color={message.sender === 'me' ? 'white' : 'black'} px={3} py={1} borderRadius="md">
+                                                    <Text fontSize="sm">{message.text}</Text>
+                                                </Box>
+                                            </Flex>
+                                        ))}
+                                    </Box>
+
+                                    <form onSubmit={handleFormSubmit}>
+                                        <Flex alignItems="center">
+                                            <InputGroup>
+                                                <Input type="text" value={inputValue} onChange={handleInputChange} placeholder="Type a message" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} />
+                                                <InputRightElement>
+                                                    <Button type="submit" aria-label="Send" size="xs" fontSize="10px" colorScheme="blue" variant="ghost" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} mr={2}>
+                                                        <FaRegPaperPlane />
+                                                    </Button>
+                                                </InputRightElement>
+                                            </InputGroup>
                                         </Flex>
-                                    ))}
-                                </Box>
+                                    </form>
+                                </Flex>
+                            </Box>
+                        </DrawerBody>
+                    </DrawerContent>)
+                    : (
+                        <DrawerContent>
+                            <DrawerCloseButton />
+                            <DrawerBody>
+                                <Box bg={colorMode === "light" ? 'gray.100' : 'gray.800'} boxShadow="md" p={3} mt={10} borderRadius="md">
+                                    <Flex direction="column" height="85vh">
+                                        <Box flex="1" mb={3} overflowY="scroll">
+                                            {messages.map((message, index) => (
+                                                <Flex key={index} justifyContent={message.sender === 'me' ? 'flex-end' : 'flex-start'} mb={2}>
+                                                    {message.sender === 'other' && (
+                                                        <Avatar size="xs" m={2} ml={0} src={currentChatAvatar} />
+                                                    )}
+                                                    <Box maxW="70%" bg={message.sender === 'me' ? 'blue.500' : 'gray.200'} color={message.sender === 'me' ? 'white' : 'black'} px={3} py={1} borderRadius="md">
+                                                        <Text fontSize="sm">{message.text}</Text>
+                                                    </Box>
+                                                </Flex>
+                                            ))}
+                                        </Box>
 
-                                <form onSubmit={handleFormSubmit}>
-                                    <Flex alignItems="center">
-                                        <InputGroup>
-                                            <Input type="text" value={inputValue} onChange={handleInputChange} placeholder="Type a message" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} />
-                                            <InputRightElement>
-                                                <Button type="submit" aria-label="Send" size="xs" fontSize="10px" colorScheme="blue" variant="ghost" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} mr={2}>
-                                                    <FaRegPaperPlane />
-                                                </Button>
-                                            </InputRightElement>
-                                        </InputGroup>
+                                        <form onSubmit={handleFormSubmit}>
+                                            <Flex alignItems="center">
+                                                <InputGroup>
+                                                    <Input type="text" value={inputValue} onChange={handleInputChange} placeholder="Type a message" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} />
+                                                    <InputRightElement>
+                                                        <Button type="submit" aria-label="Send" size="xs" fontSize="10px" colorScheme="blue" variant="ghost" bg={colorMode === "light" ? 'gray.50' : 'gray.700'} mr={2}>
+                                                            <FaRegPaperPlane />
+                                                        </Button>
+                                                    </InputRightElement>
+                                                </InputGroup>
+                                            </Flex>
+                                        </form>
                                     </Flex>
-                                </form>
-                            </Flex>
-                        </Box>
-                    </DrawerBody>
-                </DrawerContent>
+                                </Box>
+                            </DrawerBody>
+                        </DrawerContent>
+                    )}
             </Drawer>
+
+
 
             {/* chat button */}
             <Box position="fixed" bottom={4} right={4}>

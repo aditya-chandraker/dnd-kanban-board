@@ -9,6 +9,7 @@ import CheckVerification from './pages/CheckVerification';
 import CommunityView from './pages/CommunityView';
 import PrivatePolicy from './pages/PrivatePolicy';
 import Finder from './pages/Finder';
+import ProfileView from './pages/ProfileView';
 
 import { Route, Routes } from 'react-router-dom';
 import Root from './components/Root';
@@ -35,6 +36,7 @@ export default function App() {
           <Route path='communities' element={<Communities />} />
           <Route path='/community/:communityName' element={<CommunityView />} />
           <Route path='/search/:searchElement' element={<Finder />} />
+          <Route path='/profile/:profileName' element={<ProfileView />} />
         </Route>
       </Route>
     </Routes>
