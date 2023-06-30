@@ -68,7 +68,7 @@ function Calendar() {
     // get user's id from the friend_requests table
     const { data: userRequests, error: requestsError } = await supabase
       .from('friend_requests')
-      .select('id')
+      .select('requests')
       .eq('userid', user.id)
 
     // check if they have a row in the friend_requests table
@@ -105,7 +105,7 @@ function Calendar() {
   // call the check_if_fully_in function to check if the user has entered their name
   check_if_fully_in();
 
-  // update the user's name in the user_profile table
+  // insert the user's name in the user_profile table
   const handleNameSubmit = async () => {
     // get the user's information
     const { data: { user } } = await supabase.auth.getUser()
@@ -114,8 +114,7 @@ function Calendar() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .update({ username: userName })
-      .eq('userid', user?.id);
+      .insert({ username: userName, userid: user?.id});
 
     if (error) {
       toast({
